@@ -1,8 +1,10 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, request
+
+
 
 app=Flask(__name__)
 
-@app.route('/plot/')
+@app.route('/plot/', methods=['POST', 'GET'])
 def plot():
     from pandas_datareader import data
     import pandas as pd
@@ -12,10 +14,59 @@ def plot():
     from bokeh.embed import components
     from bokeh.resources import CDN
 
-    start=datetime.datetime(2015,11,1)
-    end=datetime.datetime(2016,3,10)
 
-    df=data.DataReader(name="GOOG", data_source="yahoo", start=start, end=end)
+    if request.method == "POST":
+        invar = request.form.get("stock_symbol")
+    elif type == None:
+        invar = "GOOG"
+    else:
+        invar = "GOOG"
+
+    #start=datetime.datetime(start_year, start_month, start_day)
+    #end=datetime.datetime(end_year, end_month, end_day)
+
+
+    if request.method == "POST":
+        start12 = request.form.get("Graph_start")
+        str_yr = (start12[0:4])
+        str_mnt = (start12[5:7])
+        str_dy = (start12[8:10])
+        start_year = int(str_yr)
+        start_month = int(str_mnt)
+        start_day = int(str_dy)
+        start=datetime.datetime(start_year, start_month, start_day)
+        print(start12)
+        print(type(start12))
+    elif type == None:
+        start=datetime.datetime(2015, 12, 1)
+    else:
+        start=datetime.datetime(2015, 12, 1)
+
+    #2020-05-06
+    if request.method == "POST":
+        end12 = request.form.get("Graph_end")
+        end_yr=(end12[0:4])
+        end_mnt=(end12[5:7])
+        end_dy=(end12[8:10])
+        end_year = int(end_yr)
+        end_month = int(end_mnt)
+        end_day = int(end_dy)
+        end=datetime.datetime(end_year, end_month, end_day)
+        print(end12)
+        print(type(end12))
+    elif type == None:
+        end=datetime.datetime(2016, 1, 10)
+    else:
+        end=datetime.datetime(2016, 1, 10)
+
+    #start = datetime.datetime(request.form['startT'], '%d-%m-%Y')
+
+    #start=datetime.datetime(start_year, start_month, start_day)
+    #end=datetime.datetime(end_year, end_month, end_day)
+
+    #invar = "GOOG"
+
+    df=data.DataReader(name=invar, data_source="yahoo", start=start, end=end)
 
     def incr_decr(c, o):
         if c > o:
@@ -66,6 +117,12 @@ def home():
 @app.route('/about/')
 def first_page():
     return render_template("content.html")
+
+@app.route('/plot/', methods=['Stock_symbol'])
+def my_form_post():
+    text = request.form['text']
+    processed_text = text.upper()
+    return processed_text
 
 if __name__=="__main__":
     app.run(debug=True)
