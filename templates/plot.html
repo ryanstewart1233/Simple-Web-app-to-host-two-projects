@@ -13,7 +13,7 @@
     <form action="{{ url_for('plot')}}" method="post">
     <label for="stock_symbol">Stock Symbol:</label><br>
     <input type="text" name="stock_symbol"
-    name="stock_symbol"><br>
+    name="stock_symbol" required><br>
 
     <br>
 
@@ -21,14 +21,14 @@
     <label for="startyr">Start date:</label>
     <input type="date" id="Graph_start" name="Graph_start"
 
-           min="2010-01-01" max="2020-05-16">
+           min="2010-01-01" max="2020-05-16" required>
 
     <form action="{{ url_for('plot')}}" method="post">
     <label for="endyr">End date:</label>
     <input type="date" id="Graph_end" name="Graph_end"
 
            min="2010-01-01" max="2020-05-16">
-           <input type="submit">
+           <input type="submit" required>
     </form>
 
 </form>
