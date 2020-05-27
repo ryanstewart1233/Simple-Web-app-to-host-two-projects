@@ -164,13 +164,13 @@ def etsy_data():
                 except:
                     d["Product_Price"]=None
                 try:
-                    d["Item_Status"]=item.find_all("span", {"class": "display-inline-block"})[0].text
+                    d["Item_Status"]=item.find_all("div", {"class": "text-danger text-body-smaller"})[0].text.replace("\n", "")
                 except:
                     d["Item_Status"]=None
                 l.append(d)
         df=pd.DataFrame(l)
         df
-        date=(str(datetime.now())[:10])
+        date=((str(datetime.now())[:10]) + " " + (str(datetime.now())[11:13]) + "-" + (str(datetime.now())[14:16]))
         global filename
         filename=(shop_name + date +".csv")
         df.to_csv(filename)
