@@ -1,19 +1,24 @@
 from flask import Flask, render_template, url_for, request, send_file
+#depen for web stock graph
+from pandas_datareader import data
+import pandas as pd
+from bokeh.plotting import figure, show, output_file, ColumnDataSource
+from bokeh.models.annotations import Title
+from bokeh.models import HoverTool
+from bokeh.embed import components
+from bokeh.resources import CDN
 
+#dependencies for webscraping
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+from datetime import datetime
 
 
 app=Flask(__name__)
 
 @app.route('/plot/', methods=['POST', 'GET'])
 def plot():
-    from pandas_datareader import data
-    import pandas as pd
-    import datetime
-    from bokeh.plotting import figure, show, output_file
-    from bokeh.models.annotations import Title
-    from bokeh.embed import components
-    from bokeh.resources import CDN
-
 
     if request.method == "POST":
         invar = request.form.get("stock_symbol")
@@ -22,49 +27,32 @@ def plot():
     else:
         invar = "GOOG"
 
-    #start=datetime.datetime(start_year, start_month, start_day)
-    #end=datetime.datetime(end_year, end_month, end_day)
-
-
     if request.method == "POST":
         start12 = request.form.get("Graph_start")
-        str_yr = (start12[0:4])
-        str_mnt = (start12[5:7])
-        str_dy = (start12[8:10])
-        start_year = int(str_yr)
-        start_month = int(str_mnt)
-        start_day = int(str_dy)
-        start=datetime.datetime(start_year, start_month, start_day)
-        print(start12)
-        print(type(start12))
+        #todo: fix this section to make it cleaner
+        str_yr = int(start12[0:4])
+        str_mnt = int(start12[5:7])
+        str_dy = int(start12[8:10])
+        start=datetime(str_yr, str_mnt, str_dy)
+        #print(start12)
+        #print(type(start12))
     elif type == None:
-        start=datetime.datetime(2015, 12, 1)
+        start=datetime(2015, 12, 1)
     else:
-        start=datetime.datetime(2015, 12, 1)
+        start=datetime(2015, 12, 1)
 
-    #2020-05-06
     if request.method == "POST":
         end12 = request.form.get("Graph_end")
-        end_yr=(end12[0:4])
-        end_mnt=(end12[5:7])
-        end_dy=(end12[8:10])
-        end_year = int(end_yr)
-        end_month = int(end_mnt)
-        end_day = int(end_dy)
-        end=datetime.datetime(end_year, end_month, end_day)
-        print(end12)
-        print(type(end12))
+        end_yr = int(end12[0:4])
+        end_mnt = int(end12[5:7])
+        end_dy = int(end12[8:10])
+        end=datetime(end_yr, end_mnt, end_dy)
+        #print(end12)
+        #print(type(end12))
     elif type == None:
-        end=datetime.datetime(2016, 1, 10)
+        end=datetime(2016, 1, 10)
     else:
-        end=datetime.datetime(2016, 1, 10)
-
-    #start = datetime.datetime(request.form['startT'], '%d-%m-%Y')
-
-    #start=datetime.datetime(start_year, start_month, start_day)
-    #end=datetime.datetime(end_year, end_month, end_day)
-
-    #invar = "GOOG"
+        end=datetime(2016, 1, 10)
 
     df=data.DataReader(name=invar, data_source="yahoo", start=start, end=end)
 
@@ -81,25 +69,31 @@ def plot():
 
     df["Middle"]=(df.Open+df.Close)/2
     df["Height"]=abs(df.Close-df.Open)
-    df
-
 
 
     p=figure(x_axis_type="datetime", width=1000, height=300, sizing_mode="scale_width")
-    p.title=Title(text="Candlestick Chart")
+    p.title=Title(text="Candlestick Stock Chart")
     p.grid.grid_line_alpha=0.3
 
+
+    data_source_increase = ColumnDataSource(df[df.Status=='Increase'])
+    data_source_decrease = ColumnDataSource(df[df.Status=='Decrease'])
 
     hours_12=12*60*60*1000
 
     p.segment(df.index, df.High, df.index, df.Low, color="Black")
 
-    p.rect(df.index[df.Status=="Increase"], df.Middle[df.Status=="Increase"],
-           hours_12, df.Height[df.Status=="Increase"], fill_color="#CCFFFF", line_color="black")
+    p.rect('Date', 'Middle', hours_12, 'Height', fill_color="#CCFFFF",
+     line_color="black", legend_label="Increase", name ='Increase',source=data_source_increase)
 
-    p.rect(df.index[df.Status=="Decrease"], df.Middle[df.Status=="Decrease"],
-           hours_12, df.Height[df.Status=="Decrease"], fill_color="#FF3333", line_color="black")
+    p.rect('Date', 'Middle', hours_12, 'Height', fill_color="#FF3333",
+     line_color="black", legend_label="Decrease", name ='Decrease', source=data_source_decrease)
 
+    p.legend.location = 'bottom_left'
+    hover = HoverTool(names=["Increase","Decrease"],
+     tooltips=[('Open', '@Open{0.00}'), ('Close', '@Close{0.00}'),
+      ('High','@High{0.00}'), ('Low','@Low{0.00}')])
+    p.add_tools(hover)
 
     theplot, div1 = components(p)
     cdn_js=CDN.js_files[0]
@@ -114,15 +108,6 @@ def plot():
 def home():
     return render_template("home.html")
 
-@app.route('/content/')
-def first_page():
-    return render_template("content.html")
-
-#@app.route('/plot/', methods=['Stock_symbol'])
-#def my_form_post():
-    #text = request.form['text']
-    #processed_text = text.upper()
-    #return processed_text
 @app.route('/etsydata/', methods =["POST", "GET"])
 def etsy_data():
     import requests

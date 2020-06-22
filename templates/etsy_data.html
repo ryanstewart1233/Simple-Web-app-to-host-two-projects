@@ -1,7 +1,7 @@
 {%extends "layout.html"%}
 {%block content%}
 
-
+<p1> Please input the name of an Etsy shop and this will return a spreadsheet with the names of all the items, the price and the status of the item (e.g. if it is in someones basket)</p1> <br><br>
 <div class ="form-group">
     <form action="{{ url_for('etsy_data')}}" method="post">
     <label for="shop_name">Shop Name:</label><br>
